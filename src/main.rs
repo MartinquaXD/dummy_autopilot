@@ -1,5 +1,6 @@
 use anyhow::Result;
 use reqwest::Client;
+use std::time::Instant;
 
 const SOLVERS: &[&str] = &[
     "otex",
@@ -39,11 +40,19 @@ async fn call_driver(
 }
 
 async fn run_auction(client: Client, solver: &str, auction: String) -> Result<()> {
+    let start = Instant::now();
     let solve_response = call_driver(&client, solver, "solve", auction).await?;
-    println!("{solver} solve_response: {solve_response}");
+    println!(
+        "{:?}: {solver} solve_response: {solve_response}",
+        start.elapsed()
+    );
+    let start = Instant::now();
     if solve_response.starts_with("{\"surplus") {
         let execute_response = call_driver(&client, solver, "execute", solve_response).await?;
-        println!("{solver} execute_response: {execute_response}");
+        println!(
+            "{:?} {solver} execute_response: {execute_response}",
+            start.elapsed()
+        );
     }
     Ok(())
 }
